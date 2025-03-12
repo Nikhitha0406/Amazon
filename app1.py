@@ -1,6 +1,8 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
@@ -43,22 +45,41 @@ def perform_clustering(rfm_df, n_clusters):
     return rfm_df
 
 # Streamlit UI
-st.title("Amazon User Segmentation")
+st.set_page_config(page_title="Amazon User Segmentation", layout="wide")
+st.title("📊 Amazon User Segmentation Dashboard")
+st.markdown("---")
 
 # Load data
 df = load_data()
-st.write("### Raw Dataset Sample")
-st.dataframe(df.head())
+st.sidebar.header("Dataset Preview")
+if st.sidebar.checkbox("Show Raw Dataset"):
+    st.write("### Raw Dataset Sample")
+    st.dataframe(df.head())
 
 # Preprocess data
 rfm_df = preprocess_data(df)
-st.write("### Processed RFM Data")
-st.dataframe(rfm_df.head())
+st.sidebar.header("Processed Data")
+if st.sidebar.checkbox("Show Processed RFM Data"):
+    st.write("### Processed RFM Data")
+    st.dataframe(rfm_df.head())
 
 # Select number of clusters
-n_clusters = st.slider("Select Number of Clusters", 2, 10, 3)
+n_clusters = st.sidebar.slider("Select Number of Clusters", 2, 10, 3)
 
 # Perform Clustering
 segmented_users = perform_clustering(rfm_df, n_clusters)
-st.write("### User Segmentation Results")
+st.write("### 🏷️ User Segmentation Results")
 st.dataframe(segmented_users.head())
+
+# Visualization
+st.write("### 📈 Cluster Distribution")
+fig, ax = plt.subplots()
+sns.countplot(x=segmented_users['segment'], palette='viridis', ax=ax)
+ax.set_title("Number of Users in Each Cluster")
+st.pyplot(fig)
+
+st.write("### 📊 Recency vs Frequency by Segment")
+fig, ax = plt.subplots()
+sns.scatterplot(data=segmented_users, x='recency', y='frequency', hue='segment', palette='deep', ax=ax)
+ax.set_title("User Segments Based on Recency & Frequency")
+st.pyplot(fig)
